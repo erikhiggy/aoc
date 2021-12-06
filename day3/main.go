@@ -8,7 +8,7 @@ import (
 
 func main() {
 	bNumbers := readInput()
-	// fmt.Println(part1(bNumbers))
+	fmt.Println(part1(bNumbers))
 	fmt.Println(part2(bNumbers))
 }
 
@@ -50,28 +50,65 @@ func part1(bNumbers []string) int {
 }
 
 func part2(bNumbers []string) int {
+	// keep the bNumbers with the matching most common bit
+	// in the corresponding position
+	oxyRating := getOxygenGenRating(bNumbers)
+	CO2Rating := getCO2Rating(bNumbers)
+
+	oxyInt := stringToBin(oxyRating[0])
+	CO2Int := stringToBin(CO2Rating[0])
+	return oxyInt*CO2Int
+}
+
+func getOxygenGenRating(arr []string) []string {
+	bitLen := len(arr[0])
+	vsf := arr
+	for i := 0; i < bitLen; i++ {
+		importantBit := getImportantBit(i, vsf, true)
+		if len(vsf) == 1 { break }
+		vsf = Filter(vsf, func(v string) bool {
+			return rune(v[i]) == importantBit
+		})
+	}
+	return vsf
+}
+
+func getCO2Rating(arr []string) []string {
+	bitLen := len(arr[0])
+	vsf := arr
+	for i := 0; i < bitLen; i++ {
+		importantBit := getImportantBit(i, vsf, false)
+		if len(vsf) == 1 { break }
+		vsf = Filter(vsf, func(v string) bool {
+			return rune(v[i]) == importantBit
+		})
+	}
+	return vsf
+}
+
+func getImportantBit(i int, arr []string, mostFrequent bool) rune {
 	zeroCounter := 0
 	oneCounter := 0
-	mostCommonBitArray := make([]int, len(bNumbers[0]))
-	for i := 0; i < len(bNumbers[0]); i++ {
-		zeroCounter = 0
-		oneCounter = 0
-		for _, bin := range bNumbers {
-			if bin[i] == '0' {
-				zeroCounter++
-			} else {
-				oneCounter++
-			}
-		}
-		if zeroCounter > oneCounter {
-			mostCommonBitArray[i] = 0
+	for _, bin := range arr {
+		if bin[i] == '0' {
+			zeroCounter++
 		} else {
-			mostCommonBitArray[i] = 1
+			oneCounter++
 		}
 	}
 
-	fmt.Println(mostCommonBitArray)
-	return 0
+	mostImportantBit := '1'
+	if mostFrequent {
+		if zeroCounter > oneCounter {
+			mostImportantBit = '0'
+		}
+	} else {
+		if zeroCounter <= oneCounter {
+			mostImportantBit = '0'
+		}
+	}
+
+	return mostImportantBit
 }
 
 func stringToBin(s string) int {
@@ -97,4 +134,14 @@ func readInput() []string {
 	}
 
 	return lines
+}
+
+func Filter(vs []string, f func(string) bool) []string {
+	vsf := make([]string, 0)
+	for _, v := range vs {
+		if f(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
 }
