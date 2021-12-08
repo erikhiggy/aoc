@@ -4,26 +4,66 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
+	"strconv"
 )
+
+const size = 1000
 
 func main() {
 	in := readInput()
-	split := fmtInput(in)
-	fmt.Println(split)
-	// for _, l := range split {
-	// 	fmt.Printf("%q\n", l[0])
-	// 	// x1 := string(l[0][0])
-	// 	// x2 := string(l[0][1])
-	// 	// y1 := string(l[1][0])
-	// 	// y2 := string(l[1][1])
-	// 	// fmt.Printf("Comparing x1: %s with x2: %s -> %d\n", x1, x2, strings.Compare(string(l[0][0]), string(l[1][0])))
-	// 	// fmt.Printf("Comparing y1: %s with y2: %s -> %d\n", y1, y2, strings.Compare(string(l[0][1]), string(l[1][1])))
-	// }
+	fmt.Println(part1(in))
 }
 
-func Filter(vs []string, f func(string) bool) []string {
-	vsf := make([]string, 0)
+func part1(lines []Line) int {
+	// filter for only horizontal/vertical lines
+	filteredIn := Filter(lines, func (l Line) bool {
+		return l.isHoriz() || l.isVert()
+	})
+
+	// initially mark all spots as not marked
+	var marked [size][size]int
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			marked[i][j] = 0
+		}
+	}
+
+	m := markLine(filteredIn, marked)
+
+	sum := find2s(m)
+	return sum
+}
+
+func markLine(filteredIn []Line, g [size][size]int) [size][size]int {
+	for _, l := range filteredIn {
+		if l.isHoriz() {
+			// figure out the starting and ending points
+			startX, endX := l.x1, l.x2
+			if l.x2 < startX {
+				startX, endX = l.x2, l.x1
+			}
+			for x := startX; x <= endX; x++ {
+				g[x][l.y1]++
+			}
+		}
+
+		if l.isVert() {
+			startY, endY := l.y1, l.y2
+			if l.y2 < startY {
+				startY, endY = l.y2, l.y1
+			}
+
+			for y := startY; y <= endY; y++ {
+				g[l.x1][y]++
+			}
+		}
+}
+return g
+}
+
+func Filter(vs []Line, f func(Line) bool) []Line {
+	vsf := make([]Line, 0)
 	for _, v := range vs {
 		if f(v) {
 			vsf = append(vsf, v)
@@ -32,30 +72,70 @@ func Filter(vs []string, f func(string) bool) []string {
 	return vsf
 }
 
-func fmtInput(lines []string) [][]string {
-	var list [][]string
-	for _, l := range lines {
-		splitter := strings.Split(l, " -> ")
-		x1y1 := strings.Split(splitter[0], ",")
-		fmt.Printf("%q\n", x1y1)
-		x2y2 := strings.Split(splitter[1], ",")
-		fmt.Printf("%q\n", x2y2)
-		list = append(list, splitter)
-	}
-	return list
+type Line struct {
+	x1 int
+	x2 int
+	y1 int
+	y2 int
 }
 
-func readInput() []string {
+func readInput() []Line {
+	var lines []Line
+	numRe := regexp.MustCompile("\\d+")
 	file, err := os.Open("input.txt")
 	if err != nil {
 		panic(err)
 	}
 
-	var lines []string
 	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		points := numRe.FindAllString(scanner.Text(), 4)
+		line := Line{
+			x1: strToInt(points[0]),
+			y1: strToInt(points[1]),
+			x2: strToInt(points[2]),
+			y2: strToInt(points[3]),
+		}
+		lines = append(lines, line)
 	}
 
 	return lines
+}
+
+func (l Line) isHoriz() bool {
+	return l.y1 == l.y2
+}
+
+func (l Line) isVert() bool {
+	return l.x1 == l.x2
+}
+
+func strToInt(s string) int {
+	val, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
+func Print(m [size][size]int) {
+	for i := 0; i < len(m); i++ {
+		for j := 0; j < len(m); j++ {
+			fmt.Print(m[j][i])
+		}
+		fmt.Print("\n")
+	}
+}
+
+func find2s(m [size][size]int) int {
+	sum := 0
+	for i := 0; i < len(m); i++ {
+		for j := 0; j < len(m); j++ {
+			if m[i][j] >= 2 {
+				sum++
+			}
+		}
+	}
+	return sum
 }
