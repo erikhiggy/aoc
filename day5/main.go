@@ -13,30 +13,33 @@ const size = 1000
 func main() {
 	in := readInput()
 	fmt.Println(part1(in))
+	fmt.Println(part2(in))
 }
 
 func part1(lines []Line) int {
-	// filter for only horizontal/vertical lines
-	filteredIn := Filter(lines, func (l Line) bool {
-		return l.isHoriz() || l.isVert()
-	})
-
 	// initially mark all spots as not marked
+	marked := initGrid()
+	m := markLine(lines, marked)
+	sum := find2s(m)
+	return sum
+}
+
+func part2(lines []Line) int {
+	return part1(lines)
+}
+
+func initGrid() [size][size]int {
 	var marked [size][size]int
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
 			marked[i][j] = 0
 		}
 	}
-
-	m := markLine(filteredIn, marked)
-
-	sum := find2s(m)
-	return sum
+	return marked
 }
 
-func markLine(filteredIn []Line, g [size][size]int) [size][size]int {
-	for _, l := range filteredIn {
+func markLine(lines []Line, g [size][size]int) [size][size]int {
+	for _, l := range lines {
 		if l.isHoriz() {
 			// figure out the starting and ending points
 			startX, endX := l.x1, l.x2
@@ -46,9 +49,7 @@ func markLine(filteredIn []Line, g [size][size]int) [size][size]int {
 			for x := startX; x <= endX; x++ {
 				g[x][l.y1]++
 			}
-		}
-
-		if l.isVert() {
+		} else if l.isVert() {
 			startY, endY := l.y1, l.y2
 			if l.y2 < startY {
 				startY, endY = l.y2, l.y1
@@ -57,7 +58,26 @@ func markLine(filteredIn []Line, g [size][size]int) [size][size]int {
 			for y := startY; y <= endY; y++ {
 				g[l.x1][y]++
 			}
+		} else {
+			// case for the diagonals
+			startX, startY := l.x1, l.y1
+			endX, endY := l.x2, l.y2
+			if l.x2 < startX {
+				startX, startY = l.x2, l.y2
+				endX, endY = l.x1, l.y1
+			}
+
+			y := startY
+			for x := startX; x <= endX; x++ {
+				g[x][y]++
+				if y < endY {
+					y++
+				} else {
+					y--
+				}
+			}
 		}
+
 }
 return g
 }
