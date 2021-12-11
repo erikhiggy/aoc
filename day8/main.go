@@ -7,95 +7,51 @@ import (
 	"strings"
 )
 
-const (
-	One   int = 2
-	Four      = 4
-	Seven     = 3
-	Eight     = 7
-)
-
 func main() {
-	lines := readInput()
-	v := makeArr(lines)
-	fmt.Printf("part1: %d\n", part1(v))
+	displays := readInput()
+	fmt.Printf("part1: %d\n", part1(displays))
 	// fmt.Printf("part2: %d\n", part2(v))
 }
 
-func part1(arr [][]string) int {
+func part1(displays []Display) int {
 	sum := 0
-	for _, line := range arr {
-		for i := len(line) - 1; i >= len(line)-4; i-- {
-			digit := line[i]
-			if isUnique(digit) {
+	for _, display := range displays {
+		for _, output := range display.output {
+			switch len(output) {
+			case 2, 4, 3, 7:
 				sum++
 			}
 		}
-
 	}
 	return sum
 }
 
-// TODO: Figure this out
-// func part2(arr [][]string) int {
-// 	sum := 0
-// 	digitMap := map[string]string{
-// 		"abcdeg": "0",
-// 		"acdfg":  "2",
-// 		"abcdf":  "3",
-// 		"bcdef":  "5",
-// 		"bcdefg": "6",
-// 		"abcdef": "9",
-// 	}
-
-// 	for _, line := range arr {
-// 		s := ""
-// 		for i := len(line) - 1; i >= len(line)-4; i-- {
-// 			nStr := ""
-// 			switch len(line[i]) {
-// 			case One:
-// 				nStr = "1"
-// 			case Four:
-// 				nStr = "4"
-// 			case Seven:
-// 				nStr = "7"
-// 			case Eight:
-// 				nStr = "8"
-// 			}
-
-// 			s += digitMap[sorted]
-// 		}
-// 		// count the running sum
-// 		// num, err := strconv.Atoi(s)
-// 		// checkErr(err)
-// 		// sum += num
-// 	}
-
-// 	return sum
+// func part2(grid [][]string) int {
+// 	return 0
 // }
 
-func isUnique(s string) bool {
-	return len(s) == One || len(s) == Four || len(s) == Seven || len(s) == Eight
+type Display struct {
+	patterns []string
+	output   []string
 }
 
-func makeArr(lines []string) [][]string {
-	var v [][]string
-	for _, l := range lines {
-		s := strings.Split(l, " ")
-		v = append(v, s)
-	}
-	return v
-}
-
-func readInput() []string {
+func readInput() []Display {
 	file, err := os.Open("input.txt")
 	checkErr(err)
-	var lines []string
 	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	var displays []Display
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		line := strings.Split(scanner.Text(), "|")
+		display := Display{
+			patterns: strings.Fields(line[0]),
+			output: strings.Fields(line[1]),
+		}
+		displays = append(displays, display)
 	}
 
-	return lines
+	return displays
 }
 
 func checkErr(err error) {
