@@ -5,11 +5,11 @@ export function pt1() {
 	const rows = input?.split('\n') || [];
 	let res: number = 0;
 	let possiblePartNumber = '';
-	const symbols: string[] = [];
 	let validPartNumber: boolean[] = [];
 	for (let i = 0; i < rows.length; i++) {
 		for (let j = 0; j < rows[i].length; j++) {
 			const item = rows[i][j].trim();
+			const endOfRow = j === rows[i].length - 1;
 			// Just move on if we encounter a symbol
 			// or a period with no possiblePartNumber contents.
 			if (isNaN(Number(item)) && possiblePartNumber === '') {
@@ -23,10 +23,7 @@ export function pt1() {
 				validPartNumber.push(isPartNumber(rows, i, j));
 			}
 
-			if (
-				(isNaN(Number(item)) || j === rows[i].length - 1) &&
-				possiblePartNumber !== ''
-			) {
+			if ((isNaN(Number(item)) || endOfRow) && possiblePartNumber !== '') {
 				// If we hit a period, AND we have contents in the possiblePartNumber
 				// string, check if one of the entries in the validPartNumber array
 				// is true, and if so, add the possibleNumberString to the result list.
@@ -45,12 +42,137 @@ export function pt1() {
 	return res;
 }
 
+function pt2() {
+	const input = readFile('day3/input.txt');
+	const rows = input?.split('\n') || [];
+	let res: number = 0;
+	let possiblePartNumber = '';
+	let validPartNumber: boolean[] = [];
+	for (let i = 0; i < rows.length; i++) {
+		for (let j = 0; j < rows[i].length; j++) {
+			const item = rows[i][j].trim();
+			const endOfRow = j === rows[i].length - 1;
+			// Just move on if we encounter a symbol
+			// or a period with no possiblePartNumber contents.
+			if (isNaN(Number(item)) && possiblePartNumber === '') {
+				continue;
+			}
+			// If the item is not a period and it's not a symbol
+			// add the digit to the possiblePartNumber string
+			// and check all around it to see if it's a gear.
+			if (!isNaN(Number(item))) {
+				possiblePartNumber += item;
+				validPartNumber.push(isPossibleGear(rows, i, j));
+			}
+
+			if ((isNaN(Number(item)) || endOfRow) && possiblePartNumber !== '') {
+				// If we hit a period, AND we have contents in the possiblePartNumber
+				// string, check if one of the entries in the validPartNumber array
+				// is true, and if so, add the possibleNumberString to the result list.
+				// Regardless, we want to clear both the string and array.
+				if (validPartNumber.some((v) => v === true)) {
+					res += Number(possiblePartNumber);
+				}
+				possiblePartNumber = '';
+				validPartNumber = [];
+			}
+		}
+		// Always clear at the end of the line.
+		possiblePartNumber = '';
+		validPartNumber = [];
+	}
+	return res;
+}
+
+function isGear(str: string) {
+	return str === '*';
+}
+
 function isSymbol(str: string) {
 	return !isPeriod(str) && isNaN(Number(str));
 }
 
 function isPeriod(str: string) {
 	return str === '.';
+}
+
+function isPossibleGear(arr: string[], row: number, col: number) {
+	if (row === 0) {
+		if (col === 0) {
+			return (
+				isGear(bottom(arr, row, col)) ||
+				isGear(right(arr, row, col)) ||
+				isGear(bottomRight(arr, row, col))
+			);
+		} else if (col === arr.length - 1) {
+			return (
+				isGear(bottom(arr, row, col)) ||
+				isGear(left(arr, row, col)) ||
+				isGear(bottomLeft(arr, row, col))
+			);
+		}
+		return (
+			isGear(bottom(arr, row, col)) ||
+			isGear(left(arr, row, col)) ||
+			isGear(right(arr, row, col)) ||
+			isGear(bottomLeft(arr, row, col)) ||
+			isGear(bottomRight(arr, row, col))
+		);
+	}
+
+	if (row === arr.length - 1) {
+		if (col === 0) {
+			return (
+				isGear(top(arr, row, col)) ||
+				isGear(topRight(arr, row, col)) ||
+				isGear(right(arr, row, col))
+			);
+		} else if (col === arr.length - 1) {
+			return (
+				isGear(top(arr, row, col)) ||
+				isGear(left(arr, row, col)) ||
+				isGear(topLeft(arr, row, col))
+			);
+		}
+		return (
+			isGear(top(arr, row, col)) ||
+			isGear(left(arr, row, col)) ||
+			isGear(right(arr, row, col)) ||
+			isGear(topLeft(arr, row, col)) ||
+			isGear(topRight(arr, row, col))
+		);
+	}
+
+	if (col === 0) {
+		return (
+			isGear(top(arr, row, col)) ||
+			isGear(topRight(arr, row, col)) ||
+			isGear(right(arr, row, col)) ||
+			isGear(bottomRight(arr, row, col)) ||
+			isGear(bottom(arr, row, col))
+		);
+	}
+
+	if (col === arr.length - 1) {
+		return (
+			isGear(top(arr, row, col)) ||
+			isGear(topLeft(arr, row, col)) ||
+			isGear(left(arr, row, col)) ||
+			isGear(bottomLeft(arr, row, col)) ||
+			isGear(bottom(arr, row, col))
+		);
+	}
+
+	return (
+		isGear(top(arr, row, col)) ||
+		isGear(topLeft(arr, row, col)) ||
+		isGear(left(arr, row, col)) ||
+		isGear(bottomLeft(arr, row, col)) ||
+		isGear(bottom(arr, row, col)) ||
+		isGear(topRight(arr, row, col)) ||
+		isGear(right(arr, row, col)) ||
+		isGear(bottomRight(arr, row, col))
+	);
 }
 
 function isPartNumber(arr: string[], row: number, col: number) {
