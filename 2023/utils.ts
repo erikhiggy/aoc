@@ -10,3 +10,9 @@ export function readFile(path: string) {
 		console.error('Could not read file', err);
 	}
 }
+
+export function writeFile(path: string, data: string) {
+	fs.writeFile(path, data, (err) => {
+		if (err) throw err;
+	});
+}
