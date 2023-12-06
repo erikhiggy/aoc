@@ -14,3 +14,11 @@ export function readFile(path: string) {
 export function sum(list: number[]) {
   return list.reduce((a, b) => a + b, 0);
 }
+
+export function extract(str: string) {
+  return str.match(/\d+/g)!.map((s) => s);
+}
+
+export function print<T>(x: T) {
+  console.log(x);
+}
