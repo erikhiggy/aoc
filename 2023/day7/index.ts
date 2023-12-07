@@ -33,8 +33,6 @@ export function pt1() {
   const ret = res.map((r, i) => {
     return { ...r, rank: res.length - i };
   });
-  console.log('TOP', ret[0]);
-  console.log('BOTTOM', ret[ret.length - 1]);
   let sum = 0;
   for (let i = 0; i < ret.length; i++) {
     sum += ret[i].bid * ret[i].rank;
@@ -77,7 +75,6 @@ function checkHand(hand: string): [number, string] {
       cardMap.set(card, 1);
     }
   }
-  //   print(cardMap);
 
   let handType: number = 0;
   if (highCard(cardMap)) handType = HAND_TO_STRENGTH.HIGH_CARD;
@@ -92,43 +89,19 @@ function checkHand(hand: string): [number, string] {
 }
 
 function highCard(cardMap: Map<string, number>) {
-  return [...cardMap.values()].every((v) => v === 1);
+  return cardMap.size === 5;
 }
 
 function pair(cardMap: Map<string, number>) {
-  let oneTwoValue = false;
-  for (const val of cardMap.values()) {
-    if (oneTwoValue && val === 2) return false;
-    if (val === 2) {
-      oneTwoValue = true;
-    }
-  }
-  return oneTwoValue;
+  return cardMap.size === 4 && [...cardMap.values()].includes(2);
 }
 
 function twoPair(cardMap: Map<string, number>) {
-  let oneTwoValue = false;
-  let twoTwoValues = false;
-  for (const val of cardMap.values()) {
-    if (oneTwoValue && twoTwoValues && val === 2) return false;
-    if (oneTwoValue && val === 2) {
-      twoTwoValues = true;
-      continue;
-    }
-    if (val === 2) {
-      oneTwoValue = true;
-    }
-  }
-  return oneTwoValue && twoTwoValues;
+  return cardMap.size === 3 && [...cardMap.values()].includes(2);
 }
 
 function threeOfAKind(cardMap: Map<string, number>) {
-  let hasThree = false;
-  for (const val of cardMap.values()) {
-    if (hasThree && val > 1) return false;
-    if (val === 3) hasThree = true;
-  }
-  return hasThree;
+  return cardMap.size === 3 && [...cardMap.values()].includes(3);
 }
 
 function fullHouse(cardMap: Map<string, number>) {
