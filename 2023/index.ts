@@ -5,6 +5,7 @@ import { pt1 as day4pt1, pt2 as day4pt2 } from './day4';
 import { pt1 as day5pt1, pt2 as day5pt2 } from './day5';
 import { pt1 as day6pt1, pt2 as day6pt2 } from './day6';
 import { pt1 as day7pt1, pt2 as day7pt2 } from './day7';
+import { pt1 as day8pt1, pt2 as day8pt2 } from './day8';
 
 const solutions = {
   day1Pt1: `Day 1 Part 1: ${day1pt1()}`,
@@ -21,6 +22,8 @@ const solutions = {
   day6pt2: `Day 6 Part 2: ${day6pt2()}`,
   day7pt1: `Day 7 Part 1: ${day7pt1()}`,
   day7pt2: `Day 7 Part 2: ${day7pt2()}`,
+  day8pt1: `Day 8 Part 1: ${day8pt1()}`,
+  day8pt2: `Day 8 Part 2: ${day8pt2()}`,
 };
 
 for (const value of Object.values(solutions)) {
