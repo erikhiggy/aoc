@@ -20,9 +20,12 @@ function parseInput() {
   return { instructions, directionMap };
 }
 
-function traverse(instructions: string, directionMap: DirectionMap) {
-  const start = 'AAA';
-  const end = 'ZZZ';
+function traverse(
+  instructions: string,
+  directionMap: DirectionMap,
+  start: string,
+  end?: string
+) {
   let queue = directionMap[start];
   let steps = 1;
   let i = 0;
@@ -33,10 +36,11 @@ function traverse(instructions: string, directionMap: DirectionMap) {
     const current =
       instructions.charAt(i) === 'L' ? queue.shift()! : queue.pop()!;
     queue = []; // we want a fresh queue each time
-    // print(`Instruction: ${instructions.charAt(i)}`);
-    // print(`Current: ${current}`);
-    // print(`Queue: ${queue}`);
-    if (current === end) {
+    if (!end) {
+      if (current.endsWith('Z')) {
+        return steps;
+      }
+    } else if (current === end) {
       return steps;
     }
     const paths = directionMap[current];
@@ -49,12 +53,30 @@ function traverse(instructions: string, directionMap: DirectionMap) {
   return -1;
 }
 
+function traversePt2(instructions: string, directionMap: DirectionMap) {
+  const starts = Object.keys(directionMap).filter((key) => key.endsWith('A'));
+  const steps = starts.map((start, i) => {
+    return traverse(instructions, directionMap, start);
+  });
+  return steps.reduce((acc, val) => LCM(acc, val));
+}
+
 export function pt1() {
   const { instructions, directionMap } = parseInput();
-  return traverse(instructions, directionMap);
+  return traverse(instructions, directionMap, 'AAA', 'ZZZ');
 }
 
 export function pt2() {
-  //   const [instructions, directionmap] = parseInput();
-  return -1;
+  const { instructions, directionMap } = parseInput();
+  return traversePt2(instructions, directionMap);
+}
+
+function LCM(a: number, b: number) {
+  return (a * b) / GCD(a, b);
+}
+function GCD(a: number, b: number) {
+  if (b === 0) {
+    return a;
+  }
+  return GCD(b, a % b);
 }
