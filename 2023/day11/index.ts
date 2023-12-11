@@ -5,17 +5,20 @@ function parseInput() {
   return input.split('\n').map((row) => row.split(''));
 }
 
-function expand(input: string[][]) {
+function expand(input: string[][], factor: number) {
   // If a row contains only '.', then add a row full of '.' above it.
   for (let i = 0; i < input.length; i++) {
     const row = input[i];
     if (row.every((col) => col === '.')) {
-      input.splice(
-        i + 1,
-        0,
-        row.map(() => '.')
-      );
-      i += 1;
+      // add factor rows above it.
+      for (let j = 0; j < factor; j++) {
+        input.splice(
+          i,
+          0,
+          row.map(() => '.')
+        );
+        i += 1;
+      }
     }
   }
 
@@ -23,8 +26,11 @@ function expand(input: string[][]) {
   for (let i = 0; i < input[0].length; i++) {
     const col = input.map((row) => row[i]);
     if (col.every((row) => row === '.')) {
-      input.forEach((row) => row.splice(i + 1, 0, '.'));
-      i += 1;
+      // add factor columns to the left of it.
+      for (let j = 0; j < factor; j++) {
+        input.forEach((row) => row.splice(i + 1, 0, '.'));
+        i += 1;
+      }
     }
   }
 }
@@ -53,104 +59,6 @@ class Point {
   }
 }
 
-class Cell {
-  x: number;
-  y: number;
-  f: number;
-  g: number;
-  h: number;
-  parent: Cell | undefined;
-
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-    this.f = 0;
-    this.g = 0;
-    this.h = 0;
-  }
-}
-
-function a_star(start: Point, end: Point, matrix: string[][]): Point[] {
-  let openList: Cell[] = [],
-    closedList: Cell[] = [],
-    startCell = new Cell(start.x, start.y),
-    endCell = new Cell(end.x, end.y);
-
-  openList.push(startCell);
-
-  while (openList.length > 0) {
-    let lowInd = 0;
-    for (let i = 0; i < openList.length; i++) {
-      if (openList[i].f < openList[lowInd].f) lowInd = i;
-    }
-    let currentNode = openList[lowInd];
-
-    if (currentNode.x == endCell.x && currentNode.y == endCell.y) {
-      let curr = currentNode;
-      let ret = [];
-      while (curr.parent) {
-        ret.push(new Point(curr.x, curr.y));
-        curr = curr.parent;
-      }
-      return ret.reverse();
-    }
-
-    openList.splice(lowInd, 1);
-    closedList.push(currentNode);
-
-    let neighbors: Cell[] = [];
-    const dirs = [
-      { x: 0, y: -1 },
-      { x: 1, y: 0 },
-      { x: 0, y: 1 },
-      { x: -1, y: 0 },
-    ]; // Left, right, up, down
-    for (let dir of dirs) {
-      let x = currentNode.x + dir.x;
-      let y = currentNode.y + dir.y;
-      if (x < 0 || y < 0 || x >= matrix.length || y >= matrix[0].length)
-        continue;
-      neighbors.push(new Cell(x, y)); // Only cells up, down, left and right are considered.
-    }
-
-    for (let i = 0, il = neighbors.length; i < il; i++) {
-      let neighbor = neighbors[i];
-      if (
-        closedList.findIndex(
-          (cell) => cell.x === neighbor.x && cell.y === neighbor.y
-        ) > -1
-      )
-        continue;
-
-      let gScore = currentNode.g + 1,
-        gScoreIsBest = false;
-
-      if (
-        openList.findIndex(
-          (cell) => cell.x === neighbor.x && cell.y === neighbor.y
-        ) === -1
-      ) {
-        gScoreIsBest = true;
-        neighbor.h = heuristic(neighbor, endCell);
-        openList.push(neighbor);
-      } else if (gScore < neighbor.g) gScoreIsBest = true;
-
-      if (gScoreIsBest) {
-        neighbor.parent = currentNode;
-        neighbor.g = gScore;
-        neighbor.f = neighbor.g + neighbor.h;
-      }
-    }
-  }
-  return [];
-}
-
-function heuristic(pos0: Point, pos1: Point) {
-  let d1 = Math.abs(pos1.x - pos0.x);
-  let d2 = Math.abs(pos1.y - pos0.y);
-  return d1 + d2;
-}
-
 function getCoords(input: string[][], value: string) {
   for (let i = 0; i < input.length; i++) {
     const row = input[i];
@@ -174,26 +82,48 @@ function generatePairs(galaxiesCount: number) {
   return pairs;
 }
 
+function minkowskiDistance(p1: Point, p2: Point, m: number) {
+  return (Math.abs(p1.x - p2.x) ** m + Math.abs(p1.y - p2.y) ** m) ** (1 / m);
+}
+
+function manhattanDistance(p1: Point, p2: Point) {
+  return minkowskiDistance(p1, p2, 1);
+}
+
 export function pt1() {
   const input = parseInput();
-  print('Begin expanding of the universe...');
-  expand(input);
-  print('Universe expanded.');
-  print('Begin numbering of galaxies...');
+  // expand(input, 99);
   const ct = numberGalaxies(input);
-  print(`Number of galaxies: ${ct}`);
-  print('Galaxies numbered.');
-  print('Begin generating pairs...');
   const pairs = generatePairs(ct);
-  print('Pairs generated.');
-  print('Begin calculating distances...');
   const distances: number[] = [];
   for (const pair of pairs) {
     const start = getCoords(input, pair[0]);
     const end = getCoords(input, pair[1]);
-    const path = a_star(start, end, input);
-    distances.push(path.length);
+    const md = manhattanDistance(start, end);
+    distances.push(md);
   }
-  print('Distances calculated.');
   return sum(distances);
 }
+
+export function pt2() {
+  const input = parseInput();
+  const ct = numberGalaxies(input);
+  const pairs = generatePairs(ct);
+  const distances: number[] = [];
+  for (const pair of pairs) {
+    const start = getCoords(input, pair[0]);
+    const end = getCoords(input, pair[1]);
+    const md = manhattanDistance(start, end);
+    distances.push(md);
+  }
+  return sum(distances);
+}
+
+// This is part 2
+// 1 -> 8,870,229
+// 10 -> 12,139,794 + 3,269,565
+// 100 -> 44,835,444 + 32,695,650
+// 1,000 -> 371,791,944 + 326,956,500
+// 10,000 -> 3,641,356,944 + 3,269,565,000
+// 100,000 -> 36,337,006,944 + 32,695,650,000
+// 1,000,000 -> 363,293,506,944 + 326,956,500,000
