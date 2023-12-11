@@ -1,4 +1,4 @@
-import { readFile, print } from '../utils';
+import { readFile, print, printMatrix } from '../utils';
 
 function parseInput() {
   const grid = readFile('day10/input.txt')!.split('\n');
@@ -48,7 +48,7 @@ function traverse(grid: string[]) {
   let coords: number[] = [];
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
-      if (grid[i].charAt(j) === 'S') {
+      if (grid[i][j] === 'S') {
         coords = [i, j];
         break;
       }
@@ -179,123 +179,53 @@ function traverse(grid: string[]) {
     }
   }
 
-  return result;
+  return { result, visited };
 }
 
 export function pt1() {
   const grid = parseInput();
-  const res = traverse(grid);
-  return res.length / 2;
+  const { result } = traverse(grid);
+  return result.length / 2;
 }
 
-const LetterToSymbol: { [key: string]: string } = {
-  F: '\u250F',
-  J: '\u251B',
-  L: '\u2517',
-  '7': '\u2513',
-  '|': '\u2503',
-  '-': '\u2501',
-};
+function countLines(
+  i: number,
+  j: number,
+  grid: string[],
+  visited: Set<string>
+) {
+  const line = grid[i];
+  let count = 0;
+  for (let k = 0; k < j; k++) {
+    if (!visited.has(`${i},${k}`)) {
+      continue;
+    }
+    if (
+      line[k] === '|' ||
+      line[k] === 'L' ||
+      line[k] === 'J' ||
+      line[k] === 'S'
+    ) {
+      count += 1;
+    }
+  }
+  return count;
+}
 
 export function pt2() {
   const grid = parseInput();
-  const res = traverse(grid);
-  print(res);
-  const newMat: string[][] = [];
+  const { visited } = traverse(grid);
+  let ans = 0;
   for (let i = 0; i < grid.length; i++) {
-    let tmp: string[] = [];
     for (let j = 0; j < grid[i].length; j++) {
-      const pipe = res.find((r) => r[`${i},${j}`]);
-      if (pipe) {
-        tmp.push(LetterToSymbol[pipe[`${i},${j}`]] || pipe[`${i},${j}`]);
-        // process.stdout.write(LetterToSymbol[pipe[`${i},${j}`]] || 'S');
-      } else {
-        tmp.push(' ');
-        // process.stdout.write(' ');
+      const coords = `${i},${j}`;
+      if (!visited.has(coords)) {
+        const count = countLines(i, j, grid, visited);
+        if (count % 2 === 1) {
+          ans += 1;
+        }
       }
     }
-    newMat.push(tmp);
-    // process.stdout.write('\n');
   }
-
-  let filled = floodFill(newMat, 59, 10, '.');
-  filled.forEach((n) => {
-    n.forEach((x) => {
-      process.stdout.write(LetterToSymbol[x] || x);
-    });
-    process.stdout.write('\n');
-  });
-
-  return -1;
+  return ans;
 }
-
-const floodFill = (
-  image: string[][],
-  sr: number,
-  sc: number,
-  newColor: string
-) => {
-  // Get the input which needs to be replaced.
-  const current = image[sr][sc];
-
-  // If the newColor is same as the existing
-  // Then return the original image.
-  if (current === newColor) {
-    return image;
-  }
-
-  //Other wise call the fill function which will fill in the existing image.
-  fill(image, sr, sc, newColor, current);
-
-  //Return the image once it is filled
-  return image;
-};
-
-let fillStack: any[][] = [];
-// Write ma fill function iteratively using a stack.
-const fill = (
-  image: string[][],
-  sr: number,
-  sc: number,
-  newColor: string,
-  current: string
-) => {
-  // Push the starting element into the stack.
-  fillStack.push([sr, sc]);
-
-  // Iterate till the stack is not empty.
-  while (fillStack.length) {
-    // Pop the top element from the stack.
-    const [row, col] = fillStack.pop()!;
-
-    // If the current element is same as the starting element
-    // Then replace it with the newColor.
-    if (image[row][col] === current) {
-      image[row][col] = newColor;
-    }
-
-    // Check if the top element is same as the starting element
-    // If yes then push it into the stack.
-    if (row - 1 >= 0 && image[row - 1][col] === current) {
-      fillStack.push([row - 1, col]);
-    }
-
-    // Check if the bottom element is same as the starting element
-    // If yes then push it into the stack.
-    if (row + 1 < image.length && image[row + 1][col] === current) {
-      fillStack.push([row + 1, col]);
-    }
-
-    // Check if the left element is same as the starting element
-    // If yes then push it into the stack.
-    if (col - 1 >= 0 && image[row][col - 1] === current) {
-      fillStack.push([row, col - 1]);
-    }
-
-    // Check if the right element is same as the starting element
-    // If yes then push it into the stack.
-    if (col + 1 < image[row].length && image[row][col + 1] === current) {
-      fillStack.push([row, col + 1]);
-    }
-  }
-};
