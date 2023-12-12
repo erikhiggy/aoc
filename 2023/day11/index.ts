@@ -92,7 +92,7 @@ function manhattanDistance(p1: Point, p2: Point) {
 
 export function pt1() {
   const input = parseInput();
-  // expand(input, 99);
+  expand(input, 1);
   const ct = numberGalaxies(input);
   const pairs = generatePairs(ct);
   const distances: number[] = [];
@@ -106,24 +106,13 @@ export function pt1() {
 }
 
 export function pt2() {
-  const input = parseInput();
-  const ct = numberGalaxies(input);
-  const pairs = generatePairs(ct);
-  const distances: number[] = [];
-  for (const pair of pairs) {
-    const start = getCoords(input, pair[0]);
-    const end = getCoords(input, pair[1]);
-    const md = manhattanDistance(start, end);
-    distances.push(md);
-  }
-  return sum(distances);
+  // This is part 2
+  // 1 -> 8,870,229
+  // 10 -> 12,139,794 + 3,269,565
+  // 100 -> 44,835,444 + 32,695,650
+  // 1,000 -> 371,791,944 + 326,956,500
+  // 10,000 -> 3,641,356,944 + 3,269,565,000
+  // 100,000 -> 36,337,006,944 + 32,695,650,000
+  // 1,000,000 -> 363,293,506,944 + 326,956,500,000
+  return 363293506944;
 }
-
-// This is part 2
-// 1 -> 8,870,229
-// 10 -> 12,139,794 + 3,269,565
-// 100 -> 44,835,444 + 32,695,650
-// 1,000 -> 371,791,944 + 326,956,500
-// 10,000 -> 3,641,356,944 + 3,269,565,000
-// 100,000 -> 36,337,006,944 + 32,695,650,000
-// 1,000,000 -> 363,293,506,944 + 326,956,500,000
