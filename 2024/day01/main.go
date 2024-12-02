@@ -53,10 +53,10 @@ func main() {
 	slices.Sort(left)
 	slices.Sort(right)
 
-	len := len(left)
+	listLen := len(left)
 	// Part 1
 	sum := 0.0
-	for i := 0; i < len; i++ {
+	for i := 0; i < listLen; i++ {
 		sum += math.Abs(float64(left[i]) - float64(right[i]))
 	}
 
