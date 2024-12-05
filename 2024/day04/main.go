@@ -84,13 +84,14 @@ func searchXMAS(grid [][]rune, x, y int) bool {
 
 func countXMASOccurrences(grid [][]rune) int {
 	count := 0
-	rows := len(grid)
-	cols := len(grid[0])
+	rows := grid
 
-	for i := 0; i < rows; i++ {
-		for j := 0; j < cols; j++ {
-			if searchXMAS(grid, i, j) {
-				count++
+	for i := 1; i < len(rows)-1; i++ {
+		for j := 1; j < len(rows[i])-1; j++ {
+			if rows[i][j] == 'A' {
+				if (rows[i-1][j-1] == 'M' && rows[i+1][j+1] == 'S' || rows[i-1][j-1] == 'S' && rows[i+1][j+1] == 'M') && (rows[i-1][j+1] == 'M' && rows[i+1][j-1] == 'S' || rows[i-1][j+1] == 'S' && rows[i+1][j-1] == 'M') {
+					count++
+				}
 			}
 		}
 	}
@@ -121,6 +122,6 @@ func main() {
 	countPart1 := countOccurrences(grid, word)
 	fmt.Println("Number of occurrences of XMAS:", countPart1)
 
-	//countPart2 := countXMASOccurrences(grid)
-	//fmt.Println("Number of occurrences of X-MAS:", countPart2)
+	countPart2 := countXMASOccurrences(grid)
+	fmt.Println("Number of occurrences of X-MAS:", countPart2)
 }
