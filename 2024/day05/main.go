@@ -42,7 +42,6 @@ func main() {
 			upgradeRuleLines = append(upgradeRuleLines, line)
 		}
 	}
-	//fmt.Println(pageRules)
 
 	// build a reverse map of page rules
 	pageRulesMap := make(map[string][]string)
@@ -82,24 +81,39 @@ func main() {
 		unsafeUpdatesMatrix = append(unsafeUpdatesMatrix, s)
 	}
 
-	var unsafeUpdatesList []string
-	for i := 0; i < len(unsafeUpdatesMatrix); i++ {
-		for j := 0; j < len(unsafeUpdatesMatrix[i])-1; j++ {
-			tgtList := pageRulesMap[unsafeUpdatesMatrix[i][j]]
-			for k := j + 1; k < len(unsafeUpdatesMatrix[i]); k++ {
-				for _, tgt := range tgtList {
-					if tgt == unsafeUpdatesMatrix[i][k] {
-						unsafeUpdatesMatrix[i][j], unsafeUpdatesMatrix[i][k] = unsafeUpdatesMatrix[i][k], unsafeUpdatesMatrix[i][j]
-					}
+	// fmt.Println(unsafeUpdatesList)
+	fixUnsafeUpdates(unsafeUpdatesMatrix, pageRulesMap)
+	unsafeUpdatesList := make([]string, len(unsafeUpdatesMatrix))
+	for i, line := range unsafeUpdatesMatrix {
+		unsafeUpdatesList[i] = strings.Join(line, ",")
+	}
+	part2Sum := getMiddleSum(unsafeUpdatesList)
+	fmt.Println(part2Sum)
+}
+
+func fixUnsafeUpdates(unsafeUpdates [][]string, pageRulesMap map[string][]string) {
+	for i := 0; i < len(unsafeUpdates); i++ {
+		for j := 0; j < len(unsafeUpdates[i])-1; j++ {
+			for k := j + 1; k < len(unsafeUpdates[i]); k++ {
+				if isUnsafe(unsafeUpdates[i], j, k, pageRulesMap) {
+					swap(unsafeUpdates[i], j, k)
 				}
 			}
 		}
-		unsafeUpdatesList = append(unsafeUpdatesList, strings.Join(unsafeUpdatesMatrix[i], ","))
 	}
+}
 
-	// fmt.Println(unsafeUpdatesList)
-	part2Sum := getMiddleSum(unsafeUpdatesList)
-	fmt.Println(part2Sum)
+func isUnsafe(i []string, j int, k int, rulesMap map[string][]string) bool {
+	for _, tgt := range rulesMap[i[j]] {
+		if tgt == i[k] {
+			return true
+		}
+	}
+	return false
+}
+
+func swap(arr []string, i int, j int) {
+	arr[i], arr[j] = arr[j], arr[i]
 }
 
 func getMiddleSum(arr []string) int {
@@ -126,30 +140,25 @@ func findUpdates(upgradeRules [][]string, pageRulesMap map[string][]string) ([]s
 	var safeUpdates []string
 	var unsafeUpdates []string
 	for i := 0; i < len(upgradeRules); i++ {
-		unsafe := false
-		for j := 0; j < len(upgradeRules[i])-1; j++ {
-			tgtList := pageRulesMap[upgradeRules[i][j]]
-			for k := j + 1; k < len(upgradeRules[i]); k++ {
-				for _, tgt := range tgtList {
-					if tgt == upgradeRules[i][k] {
-						// if we find a match, add the upgrade rule to the list of unsafe updates and break
-						unsafe = true
-						break
-					}
-				}
-				if unsafe {
-					break
-				}
-			}
-			if unsafe {
-				break
-			}
-		}
-		if !unsafe {
+		if isValid(upgradeRules[i], pageRulesMap) {
 			safeUpdates = append(safeUpdates, strings.Join(upgradeRules[i], ","))
 		} else {
 			unsafeUpdates = append(unsafeUpdates, strings.Join(upgradeRules[i], ","))
 		}
 	}
 	return safeUpdates, unsafeUpdates
+}
+
+func isValid(update []string, pageRulesMap map[string][]string) bool {
+	for j := 0; j < len(update)-1; j++ {
+		tgtList := pageRulesMap[update[j]]
+		for k := j + 1; k < len(update); k++ {
+			for _, tgt := range tgtList {
+				if tgt == update[k] {
+					return false
+				}
+			}
+		}
+	}
+	return true
 }
