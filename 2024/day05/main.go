@@ -57,7 +57,6 @@ func main() {
 		}
 	}
 
-	// part 1
 	var upgradeRules [][]string
 	for _, line := range upgradeRuleLines {
 		var strs []string
@@ -67,7 +66,65 @@ func main() {
 		upgradeRules = append(upgradeRules, strs)
 	}
 
+	safeUpdates, unsafeUpdates := findUpdates(upgradeRules, pageRulesMap)
+
+	// part 1
+	part1Sum := getMiddleSum(safeUpdates)
+	fmt.Println(part1Sum)
+
+	// part 2
+	var unsafeUpdatesMatrix [][]string
+	for _, line := range unsafeUpdates {
+		var s []string
+		for _, rule := range strings.Split(line, ",") {
+			s = append(s, rule)
+		}
+		unsafeUpdatesMatrix = append(unsafeUpdatesMatrix, s)
+	}
+
+	var unsafeUpdatesList []string
+	for i := 0; i < len(unsafeUpdatesMatrix); i++ {
+		for j := 0; j < len(unsafeUpdatesMatrix[i])-1; j++ {
+			tgtList := pageRulesMap[unsafeUpdatesMatrix[i][j]]
+			for k := j + 1; k < len(unsafeUpdatesMatrix[i]); k++ {
+				for _, tgt := range tgtList {
+					if tgt == unsafeUpdatesMatrix[i][k] {
+						unsafeUpdatesMatrix[i][j], unsafeUpdatesMatrix[i][k] = unsafeUpdatesMatrix[i][k], unsafeUpdatesMatrix[i][j]
+					}
+				}
+			}
+		}
+		unsafeUpdatesList = append(unsafeUpdatesList, strings.Join(unsafeUpdatesMatrix[i], ","))
+	}
+
+	// fmt.Println(unsafeUpdatesList)
+	part2Sum := getMiddleSum(unsafeUpdatesList)
+	fmt.Println(part2Sum)
+}
+
+func getMiddleSum(arr []string) int {
+	middleSum := 0
+	var middles []int
+	// grab the middle number from each unsage update line
+	for _, line := range arr {
+		parts := strings.Split(line, ",")
+		asInt, err := strconv.Atoi(parts[len(parts)/2])
+		if err != nil {
+			log.Fatal(err)
+		}
+		middles = append(middles, asInt)
+	}
+
+	// sum the middle numbers
+	for _, middle := range middles {
+		middleSum += middle
+	}
+	return middleSum
+}
+
+func findUpdates(upgradeRules [][]string, pageRulesMap map[string][]string) ([]string, []string) {
 	var safeUpdates []string
+	var unsafeUpdates []string
 	for i := 0; i < len(upgradeRules); i++ {
 		unsafe := false
 		for j := 0; j < len(upgradeRules[i])-1; j++ {
@@ -90,24 +147,9 @@ func main() {
 		}
 		if !unsafe {
 			safeUpdates = append(safeUpdates, strings.Join(upgradeRules[i], ","))
+		} else {
+			unsafeUpdates = append(unsafeUpdates, strings.Join(upgradeRules[i], ","))
 		}
 	}
-	fmt.Println(safeUpdates)
-	middleSum := 0
-	var middles []int
-	// grab the middle number from each unsage update line
-	for _, line := range safeUpdates {
-		parts := strings.Split(line, ",")
-		asInt, err := strconv.Atoi(parts[len(parts)/2])
-		if err != nil {
-			log.Fatal(err)
-		}
-		middles = append(middles, asInt)
-	}
-
-	// sum the middle numbers
-	for _, middle := range middles {
-		middleSum += middle
-	}
-	fmt.Println(middleSum)
+	return safeUpdates, unsafeUpdates
 }
