@@ -43,15 +43,12 @@ func makeDiskMap(input []string) []string {
 func swapRightMostWithFreeSpace(input []string) {
 	start, end := 0, len(input)-1
 	for start < end {
-		//fmt.Println("Start:", start, "End:", end)
 		if input[start] != "." {
 			start++
 		} else if input[end] == "." {
 			end--
 		} else {
-			//fmt.Println("Swapping", start, end)
 			swapIndexes(input, start, end)
-			//fmt.Println(input)
 			start++
 			end--
 		}
@@ -59,46 +56,37 @@ func swapRightMostWithFreeSpace(input []string) {
 }
 
 func swapBulkWithFreeSpace(input []string) {
-	start, end := 0, len(input)-1
-	for start < end {
-		availableSpace := 0
-		neededSpace := 0
-
-		if input[start] != "." {
-			start++
-		}
-		if input[end] == "." {
+	end := len(input) - 1
+	for end >= 0 {
+		start := 0
+		available, needed := 0, 0
+		if input[end] == "." && end > 0 {
 			end--
-		}
-		if input[start] == "." && input[end] != "." {
-			// count available space
-			ptr := start
-			for input[ptr] == "." {
-				availableSpace++
-				ptr++
-			}
-
-			// count needed space
-			ptr = end
+		} else {
+			ptr := end
 			currVal := input[ptr]
-			for input[ptr] == currVal {
-				neededSpace++
+			for ptr >= 0 && input[ptr] == currVal {
+				needed++
 				ptr--
 			}
 
-			if availableSpace >= neededSpace {
-				fmt.Println("Swapping", start, end)
-				for i := 0; i < neededSpace; i++ {
-					swapIndexes(input, start+i, end-i)
+			for available < needed && start < end {
+				// only count contiguous "."s as available space
+				if input[start] == "." {
+					available++
+				} else {
+					available = 0
 				}
-				fmt.Println(input)
-				start += neededSpace
-				end -= neededSpace
-			} else {
-				start += availableSpace
-				end -= availableSpace
+				start++
+			}
+			// we now have enough free space to swap
+			if available >= needed {
+				for i := 0; i < needed; i++ {
+					swapIndexes(input, end-i, start-i-1)
+				}
 			}
 		}
+		end -= needed
 	}
 }
 
@@ -111,9 +99,7 @@ func main() {
 
 	// Part 1
 	diskMap := makeDiskMap(parsed)
-	//fmt.Println(diskMap)
 	swapRightMostWithFreeSpace(diskMap)
-	//fmt.Println(diskMap)
 	sum := 0
 	for i := 0; i < len(diskMap); i++ {
 		if diskMap[i] == "." {
@@ -129,7 +115,17 @@ func main() {
 
 	// Part 2
 	diskMap2 := makeDiskMap(parsed)
-	fmt.Println(diskMap2)
 	swapBulkWithFreeSpace(diskMap2)
-	fmt.Println(diskMap2)
+	sum2 := 0
+	for i := 0; i < len(diskMap2); i++ {
+		if diskMap2[i] == "." {
+			continue
+		}
+		asInt, err := strconv.Atoi(diskMap2[i])
+		if err != nil {
+			panic(err)
+		}
+		sum2 += i * asInt
+	}
+	fmt.Println("Part 2:", sum2)
 }
