@@ -46,36 +46,65 @@ func countDigitsLoop(n int) int {
 	return count
 }
 
+func isEntirelyRepeating(s string) bool {
+	n := len(s)
+
+	// should never happen, but check anyway
+	if n < 2 {
+		return false
+	}
+
+	// double it and remove the first and last char
+	modified := s[1:] + s[:n-1]
+
+	return strings.Contains(modified, s)
+}
+
 func main() {
 	parsed := parseInput("input.txt")
 	ranges := strings.SplitSeq(parsed[0], ",")
 
-	sum := 0
+	part1Sum := 0
+	part2Sum := 0
 	for r := range ranges {
 		startingId := strings.Split(r, "-")[0]
 		endingId := strings.Split(r, "-")[1]
 
-		for i := mustInt(startingId); i < mustInt(endingId); i++ {
-			numLength := countDigitsLoop(i)
-			// we only care about even-lengthed numbers
-			if numLength%2 == 0 {
-				// numLength == 2 -> 10 == 10^1
-				// numLength == 4 -> 100 == 10^2
-				// numLength == 6 -> 1000 == 10^3
-
-				// Generalization: i % 10^(numLength / 2)
-				// This gives us the second half of the number.
-				// The first half can be retrieved though simple division.
-				divisor := int(math.Pow10(numLength / 2))
-				firstHalf := i / divisor
-				secondHalf := i % divisor
-				if firstHalf == secondHalf {
-					sum += i
-				}
-			}
+		for i := mustInt(startingId); i <= mustInt(endingId); i++ {
+			part1Sum = part1(i, part1Sum)
+			part2Sum = part2(strconv.Itoa(i), part2Sum)
 		}
 	}
-	fmt.Println("part 1: ", sum)
+	fmt.Println("part 1: ", part1Sum)
+	fmt.Println("part 2: ", part2Sum)
+}
+
+func part1(id int, sum int) int {
+	numLength := countDigitsLoop(id)
+	// we only care about even-lengthed numbers
+	if numLength%2 == 0 {
+		// numLength == 2 -> 10 == 10^1
+		// numLength == 4 -> 100 == 10^2
+		// numLength == 6 -> 1000 == 10^3
+
+		// Generalization: i % 10^(numLength / 2)
+		// This gives us the second half of the number.
+		// The first half can be retrieved though simple division.
+		divisor := int(math.Pow10(numLength / 2))
+		firstHalf := id / divisor
+		secondHalf := id % divisor
+		if firstHalf == secondHalf {
+			sum += id
+		}
+	}
+	return sum
+}
+
+func part2(id string, sum int) int {
+	if isEntirelyRepeating(id) {
+		sum += mustInt(id)
+	}
+	return sum
 }
 
 func mustInt(str string) int {
