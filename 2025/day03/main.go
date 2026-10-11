@@ -28,30 +28,43 @@ func parseInput(fileName string) []string {
 	return lines
 }
 
-func part1(s []int) int {
-	// first pass: find the largest number in s up to len(s)-1 => O(n)
-	firstMax, firstMaxIdx := maxWithIndex(s[0 : len(s)-1])
+func findTheBiggestVoltage(digits []int, length int) int {
+	chosen := ""
 
-	// second pass: starting at index of firstMax, find the secondMax => O(n)
-	secondMax, _ := maxWithIndex(s[firstMaxIdx+1:])
+	for range length {
+		max := 0
+		index := 0
 
-	return (firstMax * 10) + secondMax
+		for j := 0; j <= len(digits)+len(chosen)-length; j++ {
+			if digits[j] > max {
+				max = digits[j]
+				index = j
+			}
+		}
+
+		chosen += strconv.Itoa(max)
+		digits = digits[index+1:]
+	}
+
+	number := mustInt(chosen)
+	return number
 }
 
 func main() {
 	parsed := parseInput("input.txt")
 
-	part1Sum := 0
+	var part1Sum, part2Sum int
 	for _, l := range parsed {
-		// fmt.Println(l)
 		var intList []int
 		for _, r := range l {
 			intList = append(intList, mustInt(string(r)))
 		}
-		part1Sum += part1(intList)
+		part1Sum += findTheBiggestVoltage(intList, 2)
+		part2Sum += findTheBiggestVoltage(intList, 12)
 	}
 
 	fmt.Println("part 1:", part1Sum)
+	fmt.Println("part 2:", part2Sum)
 }
 
 func mustInt(str string) int {
