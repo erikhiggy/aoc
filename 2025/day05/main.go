@@ -56,79 +56,77 @@ func part1(ranges []string, ids []int) int {
 	return len(freshSet)
 }
 
-func part2(ranges []string) int {
-	slices.SortFunc(ranges, func(a, b string) int {
-		aAsInt := mustInt(strings.Split(a, "-")[0])
-		bAsInt := mustInt(strings.Split(b, "-")[0])
+type Range struct {
+	start int
+	end   int
+}
 
-		return cmp.Compare(aAsInt, bAsInt)
-	})
-
-	fresh := 0
-	for i, r := range ranges {
+func mergeRanges(ranges []string) int {
+	// convert to int slice
+	var ingredientRanges []Range
+	for _, r := range ranges {
 		split := strings.Split(r, "-")
 		start := mustInt(split[0])
 		end := mustInt(split[1])
+		ingredientRanges = append(ingredientRanges, Range{start, end})
+	}
+	// sort based on first entry
+	slices.SortFunc(ingredientRanges, func(a, b Range) int {
+		return cmp.Compare(a.start, b.start)
+	})
 
-		last := 0
-		if i > 0 {
-			prevSplit := strings.Split(ranges[i-1], "-")
-			last = mustInt(prevSplit[1])
+	var mergedRanges []Range
+
+	for {
+		// comparisons done since only have one more range
+		if len(ingredientRanges) == 1 {
+			mergedRanges = append(mergedRanges, ingredientRanges...)
+			break
 		}
 
-		tmp := start
-		offset := 0
-		if last-tmp >= 0 {
-			offset = (last - tmp) + 1
-		}
+		// pop the first two off to compare
+		first := ingredientRanges[0]
+		second := ingredientRanges[1]
+		ingredientRanges = ingredientRanges[2:]
 
-		newStart := tmp + offset
-
-		diff := 0
-		if newStart <= end {
-			diff = (end - newStart) + 1
+		// ranges do not intersect
+		if second.start > first.end {
+			mergedRanges = append(mergedRanges, first)
+			ingredientRanges = append([]Range{second}, ingredientRanges...)
+		} else {
+			// ranges do intersect
+			ingredientRanges = append([]Range{{first.start, max(first.end, second.end)}}, ingredientRanges...)
 		}
-		fmt.Println(r)
-		// fmt.Println("diff", diff)
-		fresh += diff
 	}
 
-	/*
-
-		3-8    => 6
-		7-9    => 1
-		11-20  => 10
-		12-15  => 0
-		22-33  => 12
-
-		total  => 29
-
-	*/
-
+	fresh := 0
+	for _, m := range mergedRanges {
+		fresh += (m.end - m.start) + 1
+	}
 	return fresh
 }
 
 func main() {
 	in := parseInput("input.txt")
 
-	// var ranges []string
-	// var ids []int
-	// for _, l := range in {
-	// 	if l == "" {
-	// 		continue
-	// 	}
-	// 	if strings.Contains(l, "-") {
-	// 		ranges = append(ranges, l)
-	// 	} else {
-	// 		asNum := mustInt(l)
-	// 		ids = append(ids, asNum)
-	// 	}
+	var ranges []string
+	var ids []int
+	for _, l := range in {
+		if l == "" {
+			continue
+		}
+		if strings.Contains(l, "-") {
+			ranges = append(ranges, l)
+		} else {
+			asNum := mustInt(l)
+			ids = append(ids, asNum)
+		}
 
-	// }
+	}
 
-	// part1Sum := part1(ranges, ids)
-	part2Sum := part2(in)
-	// fmt.Println("part 1: ", part1Sum)
+	part1Sum := part1(ranges, ids)
+	part2Sum := mergeRanges(ranges)
+	fmt.Println("part 1: ", part1Sum)
 	fmt.Println("part 2: ", part2Sum)
 }
 
