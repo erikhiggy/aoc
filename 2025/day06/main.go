@@ -79,14 +79,35 @@ func part2(grid [][]string) int {
 	cols := len(grid[0])
 
 	sum := 0
+	var eq []int
+	op := ""
 	for j := range cols {
-		var eq []int
-		for i := 0; i < rows-1; i++ {
-			if grid[i][j] != "" {
-				eq = append(eq, mustInt(grid[i][j]))
+		var str strings.Builder
+		for i := range rows {
+			char := grid[i][j]
+			if char == "+" || char == "*" {
+				op = char
+			} else if char != " " {
+				str.WriteString(char)
 			}
 		}
-		sum += calc(eq, grid[rows-1][j])
+
+		// push values
+		if str.String() != "" {
+			eq = append(eq, mustInt(str.String()))
+		}
+
+		// if we are separated by the empty col or we are at the end
+		if str.String() == "" || (str.String() != "" && j == cols-1) {
+			// we have reached an all string col,
+			// sum/product up values
+			tot := calc(eq, op)
+			// reset equation slice and op
+			eq = eq[:0]
+			op = ""
+
+			sum += tot
+		}
 	}
 	return sum
 }
@@ -94,10 +115,10 @@ func part2(grid [][]string) int {
 func main() {
 	grid := parseInput("input.txt")
 
-	fmt.Println(grid[1][0])
-
 	// part1Sum := part1(grid)
+	part2Sum := part2(grid)
 	// fmt.Println("part 1:", part1Sum)
+	fmt.Println("part 2:", part2Sum)
 }
 
 func mustInt(str string) int {
